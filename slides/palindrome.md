@@ -1,12 +1,18 @@
-<!-- .slide: class="todo" -->
-
 ## It got out of hand
 
-Photos: the Master System, the SDR, the bench
+<div class="photo-grid">
+<img src="images/bench-desk-1.jpg" alt="Desk covered in kit, a BBC Micro and a spectrum display" />
+<img src="images/bench-beeb-modulator.jpg" alt="Inside a BBC Micro, pointing at the UHF modulator" />
+<img src="images/bench-scope-rf.jpg" alt="Oscilloscope showing a modulated signal" />
+<img src="images/bench-desk-2.jpg" alt="BBC Micro on the floor under the desk, cables everywhere" />
+<img src="images/bench-scope-line.jpg" alt="Oscilloscope showing one video line: sync and colour burst" />
+<img src="images/bench-desk-3.jpg" alt="BBC Micro on the desk with a multimeter and test leads" />
+</div>
 
 Notes:
-So I bought a software defined radio, plugged in a games console's RF output, and recorded the
-actual radio signal.
+So I bought a software defined radio, plugged in the aerial output of a BBC Micro and a games
+console, and recorded the actual radio signal. Then I bought an oscilloscope. Then the desk
+disappeared.
 
 ---
 
