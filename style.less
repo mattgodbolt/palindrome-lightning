@@ -1,0 +1,591 @@
+// HRT theme colour references (defined as CSS custom properties in hrt-theme.css)
+@hrt-orange: var(--hrt-orange);
+@hrt-white: var(--hrt-white);
+@hrt-slate: var(--hrt-slate);
+@hrt-space: rgba(31, 31, 56, 0.75);
+
+:root {
+  --r-code-font: "IBM Plex Mono", monospace;
+  --r-heading-text-shadow: none;
+}
+
+// HRT logo in bottom-left corner (sits clear of the reveal.js controls)
+.reveal::after {
+  content: "";
+  position: fixed;
+  bottom: 16px;
+  left: 20px;
+  width: 90px;
+  height: 63px;
+  background: url("images/hrt-logo.png") no-repeat center / contain;
+  z-index: 10;
+  pointer-events: none;
+}
+
+// Orange "thread" motif top-right: open ring + horizontal line that runs off
+// the right edge. Recurring brand anchor on every content slide.
+.reveal::before {
+  content: "";
+  position: fixed;
+  top: 32px;
+  right: 0;
+  width: 40vw;
+  height: 22px;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22'><circle cx='11' cy='11' r='8' fill='none' stroke='%23ff8200' stroke-width='3'/></svg>")
+      left center / 22px 22px no-repeat,
+    linear-gradient(@hrt-orange, @hrt-orange) 26px center / calc(100% - 26px) 3px no-repeat;
+  z-index: 0;
+  pointer-events: none;
+}
+
+// Mirror motif: vertical orange thread at bottom-left, ring near the bottom,
+// line reaching up and off the top edge. Sits above the HRT logo.
+.reveal-viewport::before {
+  content: "";
+  position: fixed;
+  bottom: 90px;
+  left: 54px;
+  width: 22px;
+  height: 40vh;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22'><circle cx='11' cy='11' r='8' fill='none' stroke='%23ff8200' stroke-width='3'/></svg>")
+      center top / 22px 22px no-repeat,
+    linear-gradient(@hrt-orange, @hrt-orange) center bottom / 3px calc(100% - 26px) no-repeat;
+  z-index: 0;
+  pointer-events: none;
+}
+
+// Hide the logo and both orange threads on the title slide (its own branding baked in)
+.reveal:has(> .slides > section.title-slide.present)::after,
+.reveal:has(> .slides > section.title-slide.present)::before {
+  display: none;
+}
+.reveal-viewport:has(.reveal > .slides > section.title-slide.present)::before {
+  display: none;
+}
+
+// Hide the navigation controls on the title slide too
+.reveal:has(section.title-slide.present) .controls {
+  display: none !important;
+}
+
+h1 {
+  color: var(--hrt-white) !important;
+}
+
+.hidden {
+  display: none;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-around {
+  display: flex;
+  justify-content: space-around;
+}
+
+.reveal section:not(.stack):not(.title-slide) {
+  background-color: @hrt-space;
+  border-radius: 12px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 130, 0, 0.1);
+  padding: 1em 0;
+}
+
+// Generic reveal.js table chrome — mirrors what dracula.css used to provide.
+// Slide tables rely on this for
+// centring, cell padding, and the bottom-border row separator.
+.reveal table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin: auto;
+}
+.reveal table th {
+  font-weight: 700;
+}
+.reveal table th,
+.reveal table td {
+  text-align: left;
+  border-bottom: 1px solid;
+  padding: 0.2em 0.5em;
+}
+.reveal table th[align="center"],
+.reveal table td[align="center"] {
+  text-align: center;
+}
+.reveal table th[align="right"],
+.reveal table td[align="right"] {
+  text-align: right;
+}
+
+.reveal ul {
+  list-style-type: square;
+}
+
+.reveal pre code {
+  padding: 10px;
+  max-height: 530px;
+}
+
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.attribution {
+  font-size: 60%;
+  font-style: italic;
+  background: #333355;
+}
+
+table.borders td,
+table.borders th {
+  border: 2px solid black !important;
+}
+
+.no-border {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.note {
+  font-style: italic;
+  font-size: 80%;
+}
+
+// Bright-red TODO placeholder — apply to .reveal section.todo for whole-slide
+// placeholders, or as inline class for individual missing items. Loud on
+// purpose so nothing accidentally ships unfinished.
+.reveal section.todo {
+  background-color: #b30000 !important;
+  border: 6px dashed #ffea00 !important;
+  box-shadow: 12px 12px rgba(0, 0, 0, 0.5) !important;
+}
+.reveal section.todo h1,
+.reveal section.todo h2,
+.reveal section.todo h3,
+.reveal section.todo h4,
+.reveal section.todo p,
+.reveal section.todo li {
+  color: #fff !important;
+  text-shadow: 2px 2px #000 !important;
+}
+.reveal section.todo::before {
+  content: "TODO";
+  position: absolute;
+  top: 0.2em;
+  right: 0.4em;
+  font-family: monospace;
+  font-weight: 900;
+  font-size: 200%;
+  color: #ffea00;
+  text-shadow: 3px 3px #000;
+  letter-spacing: 0.1em;
+}
+.todo-inline {
+  background: #b30000;
+  color: #ffea00 !important;
+  font-weight: 900;
+  padding: 0.05em 0.4em;
+  border-radius: 0.2em;
+  font-family: monospace;
+  text-shadow: 1px 1px #000;
+}
+.todo-inline::before {
+  content: "TODO: ";
+}
+
+tr.highlight-line {
+  text-shadow: 0px 0px 10px #ccc !important;
+  filter: brightness(1.15);
+}
+.blur-edges {
+  mask-image:
+    linear-gradient(to right, transparent, black 2%, black 98%, transparent),
+    linear-gradient(to left, transparent, black 2%, black 98%, transparent),
+    linear-gradient(to top, transparent, black 2%, black 98%, transparent),
+    linear-gradient(to bottom, transparent, black 2%, black 98%, transparent);
+  mask-size: 100% 100%;
+  mask-composite: intersect;
+}
+.monospace {
+  font-family: "Courier New", Courier, monospace;
+}
+.top-right {
+  position: absolute;
+  top: 0.5em;
+  right: -0.1em;
+}
+
+// ---------------------------------------------------------------------------
+// anim/ scene toolkit: themed styling for programmatic SVG diagrams.
+// The toolkit only draws and animates; the look lives here. See anim/README.md
+// for the full class contract. Highlights are driven by GSAP tweening the
+// --active custom property, interpolated with color-mix().
+// ---------------------------------------------------------------------------
+.scene {
+  width: 1000px;
+  height: 560px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.scene-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  font-family: inherit;
+}
+
+// Injected navigation stops: present so reveal can count them, never seen.
+.scene-fragment {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+// --active is declared on .node (the element activate() tweens); .node-box
+// inherits it. Declaring it on .node-box instead would shadow the tween.
+.node,
+.cluster {
+  --active: 0;
+}
+
+// Cluster: a translucent container grouping member nodes (serving fleet,
+// storage tier). Dashed so it reads as a boundary, not another box.
+.cluster-box {
+  fill: color-mix(in srgb, var(--hrt-space) 40%, transparent);
+  stroke: color-mix(in srgb, var(--hrt-graphite), var(--hrt-amber) calc(var(--active) * 85%));
+  stroke-width: 2;
+  stroke-dasharray: 8 6;
+}
+
+.cluster-title {
+  fill: var(--hrt-slate);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+// Storage-tier nodes: cool slate wash to distinguish them from compute.
+.store .node-box {
+  fill: color-mix(in srgb, var(--hrt-space), var(--hrt-slate) calc(40% + var(--active) * 40%));
+}
+
+.node-box {
+  fill: color-mix(in srgb, var(--hrt-space), var(--hrt-orange) calc(var(--active) * 70%));
+  stroke: color-mix(in srgb, var(--hrt-graphite), var(--hrt-amber) calc(var(--active) * 85%));
+  stroke-width: 2;
+}
+
+.node-title {
+  fill: var(--hrt-ghost);
+  font-size: 34px;
+  font-weight: 600;
+}
+
+.label,
+.value-text {
+  fill: var(--hrt-ghost);
+}
+
+.edge {
+  fill: none;
+  stroke: var(--hrt-graphite);
+  stroke-width: 2;
+}
+
+.arrowhead {
+  fill: var(--hrt-graphite);
+}
+
+.token-dot {
+  fill: var(--hrt-orange);
+}
+
+.token-pill {
+  fill: var(--hrt-orange);
+}
+
+.token-text {
+  fill: var(--hrt-black);
+  font-weight: 700;
+}
+
+// "Scan this" QR codes, injected by plugins/reveal-qr.js. Fixed to the viewport
+// (on <body>, outside reveal's transformed .slides) so they sit in the screen
+// margin, not the slide area. White plate + drop shadow so the code stays
+// scannable over the dark deck. Shown only on the slide that requested it.
+.qr-code {
+  position: fixed;
+  z-index: 40;
+  padding: 1vh;
+  background: var(--hrt-white);
+  border-radius: 0.6vh;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+  line-height: 0;
+  pointer-events: none;
+
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease;
+  &.qr-visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  svg {
+    display: block;
+    width: 14vh;
+    height: 14vh;
+  }
+
+  // Offsets clear the reveal.js controls (bottom-right) and the HRT logo
+  // (bottom-left); tops clear the orange thread motif.
+  &.qr-bottom-right {
+    right: 260px;
+    bottom: 96px;
+  }
+  &.qr-bottom-left {
+    left: 130px;
+    bottom: 24px;
+  }
+  &.qr-top-right {
+    right: 24px;
+    top: 72px;
+  }
+  &.qr-top-left {
+    left: 24px;
+    top: 72px;
+  }
+}
+
+.qr-caption {
+  margin-top: 0.5vh;
+  color: var(--hrt-orange);
+  font-family: var(--r-code-font);
+  font-size: 0.75vh;
+  text-align: center;
+  pointer-events: none;
+  width: 14vh;
+}
+
+// ---------------------------------------------------------------------------
+// Title slide: plain HTML (no conference artwork), HRT colours.
+// ---------------------------------------------------------------------------
+.reveal section.title-slide {
+  text-align: left;
+  padding-left: 6%;
+
+  h1 {
+    font-size: 4em;
+    font-weight: 700;
+    margin-bottom: 0.1em;
+  }
+  .subtitle {
+    font-size: 1.4em;
+    color: var(--hrt-amber);
+    margin-top: 0;
+  }
+  .byline {
+    margin-top: 3em;
+    color: var(--hrt-ghost);
+  }
+  .venue {
+    color: var(--hrt-slate);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PAL scenes (scenes/*.ts). Signal-ish colours: the waveform is a scope trace.
+// ---------------------------------------------------------------------------
+@trace: #7dffb0;
+@chroma-trace: #ffe066;
+
+// Leaves room for the slide heading within the 1728x972 slide.
+.scene.wide {
+  width: 1500px;
+  height: 760px;
+}
+
+.path {
+  fill: none;
+}
+
+// CRT side view
+.crt-glass {
+  fill: color-mix(in srgb, var(--hrt-space) 70%, #4a5a80);
+  stroke: var(--hrt-slate);
+  stroke-width: 3;
+}
+.crt-gun {
+  fill: var(--hrt-graphite);
+  stroke: var(--hrt-ghost);
+  stroke-width: 2;
+}
+.crt-screen {
+  fill: #3d6b55;
+}
+.crt-coils {
+  --active: 0;
+  fill: color-mix(in srgb, #8a5a2b, var(--hrt-orange) calc(var(--active) * 100%));
+  stroke: var(--hrt-amber);
+  stroke-width: 2;
+}
+.crt-caption {
+  fill: var(--hrt-ghost);
+  font-size: 30px;
+}
+.beam {
+  stroke: #9fd8ff;
+  stroke-width: 6;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 8px #4fb4ff);
+}
+.phosphor-glow {
+  fill: #b6ffcf;
+  filter: drop-shadow(0 0 18px #7dffb0) drop-shadow(0 0 30px #7dffb0);
+}
+
+// TV + waveform
+.tv-bezel {
+  fill: #2a2a2e;
+  stroke: #555;
+  stroke-width: 3;
+}
+.tv-off {
+  fill: #0c0f0c;
+}
+.scanline-gap {
+  fill: rgba(0, 0, 0, 0.55);
+}
+.wave-axes line {
+  stroke: var(--hrt-graphite);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 6;
+}
+.wave-level {
+  fill: var(--hrt-slate);
+  font-size: 26px;
+}
+.wave-guide line {
+  stroke: var(--hrt-slate);
+  stroke-width: 2;
+  stroke-dasharray: 4 8;
+}
+.wave {
+  fill: none;
+  stroke: @trace;
+  stroke-width: 4;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px @trace);
+}
+.wave.sync-pulse {
+  stroke: var(--hrt-orange);
+  filter: drop-shadow(0 0 4px var(--hrt-orange));
+}
+.wave.chroma {
+  stroke: @chroma-trace;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 4px @chroma-trace);
+}
+.flyback {
+  fill: none;
+  stroke: #9fd8ff;
+  stroke-width: 3;
+  stroke-dasharray: 10 8;
+}
+.beam-dot {
+  fill: #fff;
+  filter: drop-shadow(0 0 10px #9fd8ff) drop-shadow(0 0 20px #9fd8ff);
+}
+.sync-label,
+.pal-title {
+  fill: var(--hrt-orange);
+  font-size: 44px;
+  font-weight: 700;
+}
+.count-label {
+  fill: var(--hrt-amber);
+  font-size: 60px;
+  font-weight: 700;
+}
+.side-label {
+  fill: var(--hrt-ghost);
+  font-size: 40px;
+}
+.burst-box {
+  fill: none;
+  stroke: var(--hrt-orange);
+  stroke-width: 4;
+}
+
+// Phasors
+.axis-label {
+  fill: var(--hrt-slate);
+  font-size: 32px;
+  font-style: italic;
+}
+.phasor {
+  stroke-width: 10;
+  stroke-linecap: round;
+  line {
+    stroke: currentColor;
+  }
+  polygon {
+    fill: currentColor;
+  }
+  &.sent {
+    color: var(--hrt-ghost);
+  }
+  &.received {
+    color: var(--hrt-orange);
+  }
+  &.received.alt {
+    color: #66b8ff;
+  }
+  &.average {
+    color: @trace;
+  }
+}
+.swatch {
+  stroke: var(--hrt-ghost);
+  stroke-width: 3;
+}
+.swatch-label {
+  fill: var(--hrt-ghost);
+  font-size: 32px;
+}
+
+// Side-by-side live emulators / images
+.side-by-side {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  align-items: flex-start;
+  figure {
+    margin: 0;
+  }
+  figcaption {
+    font-size: 0.8em;
+    color: var(--hrt-amber);
+  }
+}
+.emu {
+  width: 760px;
+  height: 600px;
+  border: 0;
+  border-radius: 8px;
+  background: #000;
+}

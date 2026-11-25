@@ -1,0 +1,9 @@
+*.swp
+*~
+node_modules
+/dist
+
+# Claude Code: ignore agent worktrees and personal settings, but allow
+# shared project config (settings.json, agents/, commands/) to be committed.
+/.claude/worktrees
+/.claude/settings.local.json

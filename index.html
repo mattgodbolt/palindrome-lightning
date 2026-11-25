@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <title>PALindrome: a lightning talk about PAL</title>
+
+    <link rel="shortcut icon" href="images/favicon.png" />
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section class="title-slide">
+          <h1>PALindrome</h1>
+          <p class="subtitle">or: how I accidentally wrote a television</p>
+          <p class="byline">Matt Godbolt</p>
+          <p class="venue">Meeting C++ 2026, Berlin</p>
+        </section>
+
+        <section
+          data-markdown="slides/crt.md"
+          data-separator="^-----"
+          data-separator-vertical="^---"
+          data-separator-notes="^Notes:"
+        ></section>
+
+        <section
+          data-markdown="slides/signal.md"
+          data-separator="^-----"
+          data-separator-vertical="^---"
+          data-separator-notes="^Notes:"
+        ></section>
+
+        <section
+          data-markdown="slides/colour.md"
+          data-separator="^-----"
+          data-separator-vertical="^---"
+          data-separator-notes="^Notes:"
+        ></section>
+
+        <section
+          data-markdown="slides/pal.md"
+          data-separator="^-----"
+          data-separator-vertical="^---"
+          data-separator-notes="^Notes:"
+        ></section>
+
+        <section
+          data-markdown="slides/jsbeeb.md"
+          data-separator="^-----"
+          data-separator-vertical="^---"
+          data-separator-notes="^Notes:"
+        ></section>
+
+        <section
+          data-markdown="slides/palindrome.md"
+          data-separator="^-----"
+          data-separator-vertical="^---"
+          data-separator-notes="^Notes:"
+        ></section>
+
+        <section
+          data-markdown="slides/end.md"
+          data-separator="^-----"
+          data-separator-vertical="^---"
+          data-separator-notes="^Notes:"
+        ></section>
+      </div>
+    </div>
+
+    <script type="module">
+      import "reveal.js/reset.css";
+      import "reveal.js/reveal.css";
+      import "reveal.js/plugin/highlight/monokai.css";
+      import "./hrt-theme.css";
+      import "./style.less";
+
+      import Reveal from "reveal.js";
+      import Markdown from "reveal.js/plugin/markdown";
+      import Highlight from "reveal.js/plugin/highlight";
+      import RevealNotes from "reveal.js/plugin/notes";
+      import RevealScene from "./anim/reveal-scene.ts";
+      import RevealQR from "./plugins/reveal-qr.ts";
+
+      // TODO fiddle with these to get best fit for projector
+      const scaleFactor = 0.9;
+      Reveal.initialize({
+        history: true,
+        transition: "fade",
+        transitionSpeed: "fast",
+        slideNumber: false,
+        margin: 0.05,
+        width: 1920 * scaleFactor,
+        height: 1080 * scaleFactor,
+        markdown: {
+          smartypants: true,
+        },
+        plugins: [Markdown, Highlight, RevealNotes, RevealScene(), RevealQR()],
+        // Five minutes. At comedy breakneck pace.
+        totalTime: 5 * 60,
+      });
+    </script>
+  </body>
+</html>
