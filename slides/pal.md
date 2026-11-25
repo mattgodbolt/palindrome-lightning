@@ -1,15 +1,19 @@
 ## Hue is an angle
 
-<div class="scene wide" data-scene="pal" data-viewbox="0 0 1600 760"></div>
+<div class="scene wide" data-scene="pal" data-viewbox="0 0 1600 780"></div>
 
 Notes:
-A colour is an arrow: angle is hue, length is saturation. The Americans got there first, with
+Phase is just an angle. Think of the burst as a dot going round a circle: once round, one
+cycle. Carry on that rhythm through the whole line. The colour wiggle goes at the same speed but
+it's ahead, here by a third of a cycle, 121 degrees. That angle is the hue, and the size of the
+wiggle, the length of the arrow, is the saturation. The Americans got there first, with
 NTSC. But any phase error between the studio and your sofa rotates the arrow, every line the
 same way, and your newsreader goes green. Hence the hue knob, and "Never The Same Colour".
-PAL, Walter Bruch at Telefunken: flip V on every other line. The same error rotates that line
-the same way, but when the set flips it back, it's now wrong in the opposite direction. One line
-too yellow, the next too pink. Average each pair with a delay line and the error cancels. You
-lose a little saturation instead of getting the wrong colour.
+PAL, Walter Bruch at Telefunken. Odd lines go out exactly as NTSC: same error, still wrong.
+But even lines go out with V upside down, mirrored. The error doesn't care what you sent, so it
+nudges that line the same way. Then the set flips it back, and now it's wrong the other way: one
+line too yellow, the next too pink. Average each pair with a delay line and the errors cancel.
+You lose a little saturation instead of getting the wrong colour.
 
 ---
 

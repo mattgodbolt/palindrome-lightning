@@ -608,3 +608,49 @@ tr.highlight-line {
     border-radius: 8px;
   }
 }
+
+// "Phase is an angle" lead-in on the PAL slide.
+.phase-circle {
+  fill: none;
+  stroke: var(--hrt-slate);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+}
+.phase-dot {
+  &.reference {
+    fill: var(--hrt-ghost);
+  }
+  &.chroma {
+    fill: #ffe066;
+    filter: drop-shadow(0 0 6px #ffe066);
+  }
+}
+.wave.reference {
+  stroke: var(--hrt-slate);
+  filter: none;
+}
+.phase-arc {
+  fill: none;
+  stroke: var(--hrt-orange);
+  stroke-width: 4;
+}
+.phase-label {
+  fill: var(--hrt-orange);
+  font-size: 34px;
+  font-weight: 700;
+}
+
+// PAL slide: the phase error, and captions colour-coded to the arrows.
+.error-arc {
+  fill: none;
+  stroke: #ff5a5a;
+  stroke-width: 7;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px #ff5a5a);
+}
+.side-label.odd-line {
+  fill: var(--hrt-orange);
+}
+.side-label.even-line {
+  fill: #66b8ff;
+}

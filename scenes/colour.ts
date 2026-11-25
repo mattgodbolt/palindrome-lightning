@@ -132,7 +132,7 @@ export default function ({ stage, steps }: SceneContext): void {
   };
   const bw = label(90, "brightness only");
   const sat = label(170, "size = saturation");
-  const hue = label(230, "timing = hue");
+  const hue = label(230, "phase = hue");
   const burstLabel = stage.label({
     x: X(BURST_START_US) + 20,
     y: 525,

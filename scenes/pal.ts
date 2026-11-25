@@ -16,12 +16,18 @@
 import gsap from "gsap";
 
 import type { SceneContext } from "../anim/reveal-scene.js";
-import { css, el, rgbToYuv, yuvToRgb } from "./lib.js";
+import { css, el, plot, rgbToYuv, uniqueId, yuvToRgb } from "./lib.js";
 
 const CX = 400;
 const CY = 390;
 const SCALE = 1200; // px per unit of U/V
 const ERROR_DEG = 40;
+const CAPTION_Y = 680;
+
+// Lead-in: the subcarrier as a dot going round a circle, drawing its wave.
+const WAVE_X = 860;
+const WAVE_W = 620;
+const WAVE_CYCLES = 2;
 const SKIN = { r: 0.85, g: 0.6, b: 0.45 };
 
 // The "screen": a sent-colour chip, then a stack of picture lines.
@@ -62,7 +68,8 @@ export default function ({ stage, steps }: SceneContext): void {
   const colourAt = (angle: number, m = mag) =>
     css(yuvToRgb(y, m * Math.cos(angle), m * Math.sin(angle)));
 
-  // --- the wheel -------------------------------------------------------------
+  // --- the wheel (hidden until the lead-in has explained the angle) ---------
+  const ring = el("g", { opacity: 0 }, back);
   const N = 90;
   for (let i = 0; i < N; i++) {
     const a0 = (i / N) * 2 * Math.PI;
@@ -75,7 +82,7 @@ export default function ({ stage, steps }: SceneContext): void {
         d: `M${p(r0, a0)} L${p(r1, a0)} A${r1},${r1} 0 0 0 ${p(r1, a1)} L${p(r0, a1)} A${r0},${r0} 0 0 1 ${p(r0, a0)} Z`,
         fill: colourAt((a0 + a1) / 2, 0.3),
       },
-      back,
+      ring,
     );
   }
   const axes = el("g", { class: "wave-axes" }, back);
@@ -94,7 +101,8 @@ export default function ({ stage, steps }: SceneContext): void {
     gsap.set(p.arrow, { svgOrigin: "0 0", rotation: rot(theta), opacity: 0 });
   }
 
-  // --- the screen ------------------------------------------------------------
+  // --- the screen (hidden until the lead-in is done) -------------------------
+  const screen = el("g", { opacity: 0 }, back);
   el(
     "rect",
     {
@@ -106,13 +114,14 @@ export default function ({ stage, steps }: SceneContext): void {
       rx: 12,
       fill: css(SKIN),
     },
-    back,
+    screen,
   );
   stage.label({
     x: CHIP_X + 60,
     y: LINES_Y + N_LINES * LINE_H + 40,
     text: "sent",
     className: "swatch-label",
+    parent: screen,
   });
   el(
     "rect",
@@ -124,7 +133,7 @@ export default function ({ stage, steps }: SceneContext): void {
       height: N_LINES * LINE_H + 28,
       rx: 18,
     },
-    back,
+    screen,
   );
   const oddLines: SVGRectElement[] = [];
   const evenLines: SVGRectElement[] = [];
@@ -132,7 +141,7 @@ export default function ({ stage, steps }: SceneContext): void {
     const r = el(
       "rect",
       { x: LINES_X, y: LINES_Y + i * LINE_H, width: LINES_W, height: LINE_H - 3, fill: css(SKIN) },
-      back,
+      screen,
     );
     (i % 2 ? evenLines : oddLines).push(r);
   }
@@ -141,6 +150,7 @@ export default function ({ stage, steps }: SceneContext): void {
     y: LINES_Y + N_LINES * LINE_H + 40,
     text: "on screen, line by line",
     className: "swatch-label",
+    parent: screen,
   });
 
   // --- captions: one title + one line per beat, cross-faded ------------------
@@ -150,62 +160,176 @@ export default function ({ stage, steps }: SceneContext): void {
     return l.el;
   };
   let shown: SVGTextElement[] = [];
-  const caption = (t: number, title: string | null, sub: string) => {
-    const next: SVGTextElement[] = [make(sub, 620, "side-label")];
-    if (title) next.unshift(make(title, 540, "pal-title"));
+  const caption = (t: number, title: string | null, sub: string, subClass = "") => {
+    const next: SVGTextElement[] = [make(sub, CAPTION_Y + 62, `side-label ${subClass}`)];
+    if (title) next.unshift(make(title, CAPTION_Y, "pal-title"));
     const keep = title ? [] : shown.filter((e) => e.classList.contains("pal-title"));
     for (const e of shown) if (!keep.includes(e)) steps.to(e, { opacity: 0, duration: 0.25 }, t);
     for (const e of next) steps.to(e, { opacity: 1, duration: 0.3 }, t + 0.2);
     shown = [...keep, ...next];
   };
 
-  // 1. A colour is an arrow.
+  // --- lead-in: phase is an angle ---------------------------------------------
+  // A dot going round the circle at the subcarrier frequency traces the wave
+  // to its right. The burst, continued, is the reference (drawn at 0 degrees:
+  // a cartoon, as real PAL burst sits at 135/225 and the set derives its U/V
+  // references from it, but the idea is the same); the
+  // colour wiggle is the same frequency but ahead by theta. That lead, read
+  // as an angle, is the hue. The circle's radius is the arrow length, so the
+  // colour dot ends up exactly at the tip of the arrow that follows.
+  const lead = el("g", {}, back);
+  const circle = el("circle", { class: "phase-circle", cx: CX, cy: CY, r: len, opacity: 0 }, lead);
+  const wave = (phase: number, cls: string) => {
+    const clipId = uniqueId("wave");
+    const clip = el("clipPath", { id: clipId }, lead);
+    const reveal = el("rect", { x: WAVE_X - 10, y: 0, width: 0, height: 800 }, clip);
+    const k = (2 * Math.PI * WAVE_CYCLES) / WAVE_W;
+    const path = el(
+      "path",
+      {
+        class: `wave ${cls}`,
+        d: plot(WAVE_X, WAVE_X + WAVE_W, (x) => CY - len * Math.sin(k * (x - WAVE_X) + phase)),
+        "clip-path": `url(#${clipId})`,
+      },
+      lead,
+    );
+    return { path, reveal };
+  };
+  const dot = (cls: string, phase: number) => {
+    const outer = el("g", { transform: `translate(${CX},${CY})` }, lead);
+    const spin = el("g", {}, outer);
+    el("circle", { class: `phase-dot ${cls}`, cx: len, cy: 0, r: 14 }, spin);
+    gsap.set(spin, { svgOrigin: "0 0", rotation: rot(phase), opacity: 0 });
+    return spin;
+  };
+  const refWave = wave(0, "reference");
+  const colWave = wave(theta, "chroma");
+  const refDot = dot("reference", 0);
+  const colDot = dot("chroma", theta);
+  const arcR = 70;
+  const phaseArc = el(
+    "path",
+    {
+      class: "phase-arc",
+      d: `M${CX + arcR},${CY} A${arcR},${arcR} 0 0 0 ${CX + arcR * Math.cos(theta)},${CY - arcR * Math.sin(theta)}`,
+      opacity: 0,
+    },
+    lead,
+  );
+  const phaseLabel = stage.label({
+    x: CX + 115 * Math.cos(theta / 2),
+    y: CY - 115 * Math.sin(theta / 2),
+    text: `${Math.round((theta * 180) / Math.PI)}°`,
+    className: "phase-label",
+  });
+  phaseLabel.el.setAttribute("opacity", "0");
+  const spinDuration = 1.8;
+  const turns = -360 * WAVE_CYCLES;
+
+  // 1. The burst: the reference wiggle. Once round the circle is one cycle.
   let t = steps.now();
-  steps.to(sent.arrow, { opacity: 1, duration: 0.4 }, t);
+  steps
+    .to(circle, { opacity: 1, duration: 0.3 }, t)
+    .to(refDot, { opacity: 1, duration: 0.2 }, t)
+    .to(refDot, { rotation: turns, duration: spinDuration, ease: "none" }, t)
+    .to(refWave.reveal, { attr: { width: WAVE_W + 20 }, duration: spinDuration, ease: "none" }, t);
+  caption(t, "Phase is an angle", "the burst, continued: one cycle = once round");
+  steps.step();
+
+  // 2. The colour wiggle: same speed, but ahead. How far ahead is an angle.
+  t = steps.now();
+  steps
+    .to(colDot, { opacity: 1, duration: 0.2 }, t)
+    .to(colDot, { rotation: rot(theta) + turns, duration: spinDuration, ease: "none" }, t)
+    .to(colWave.reveal, { attr: { width: WAVE_W + 20 }, duration: spinDuration, ease: "none" }, t)
+    .to(phaseArc, { opacity: 1, duration: 0.3 }, t + spinDuration)
+    .to(phaseLabel.el, { opacity: 1, duration: 0.3 }, t + spinDuration)
+    .to(sent.arrow, { opacity: 1, duration: 0.3 }, t + spinDuration);
+  caption(t, null, "colour: same wiggle, a third of a cycle ahead");
+  steps.step();
+
+  // 3. ...and that angle IS the hue; the length is the saturation.
+  t = steps.now();
+  steps
+    .to([refWave.path, colWave.path, circle, refDot, colDot], { opacity: 0, duration: 0.4 }, t)
+    .to([phaseArc, phaseLabel.el], { opacity: 0, duration: 0.4 }, t)
+    .to(ring, { opacity: 1, duration: 0.6 }, t + 0.2)
+    .to(screen, { opacity: 1, duration: 0.6 }, t + 0.2);
   caption(t, "Colour is an arrow", "angle = hue, length = saturation");
   steps.step();
 
-  // 2. NTSC: a phase error on the way rotates every line the same way.
+  // --- the phase error, drawn as an arc beside the arrow it nudges ------------
+  // Both arcs go in their arrow's MIRROR group, not the rotating arrow, so the
+  // even-line arc flips with the V flip: on air it points the same way as the
+  // odd-line arc (the error doesn't care what's being sent), and once the set
+  // flips the line back, it visibly points the other way.
+  const errR = len + 30;
+  const at = (a: number) => `${errR * Math.cos(a)},${-errR * Math.sin(a)}`;
+  const oddArc = stage.path({
+    className: "error-arc",
+    d: `M${at(theta)} A${errR},${errR} 0 0 0 ${at(theta + err)}`, // anticlockwise
+    parent: odd.mirror,
+  });
+  // Pre-mirror coordinates: theta -> theta - err (clockwise) shows on air,
+  // mirrored, as -theta -> -theta + err (anticlockwise, like the odd line).
+  const evenArc = stage.path({
+    className: "error-arc",
+    d: `M${at(theta)} A${errR},${errR} 0 0 1 ${at(theta - err)}`,
+    parent: even.mirror,
+  });
+  const notYet = "rgb(55, 55, 70)";
+
+  // 4. NTSC: a phase error on the way rotates every line the same way.
   t = steps.now();
   steps
     .to(odd.arrow, { opacity: 1, duration: 0.2 }, t)
+    .draw(oddArc, { duration: 0.8 }, t)
     .to(odd.arrow, { rotation: rot(theta + err), duration: 0.8 }, t)
     .to([...oddLines, ...evenLines], { fill: colourAt(theta + err), duration: 0.8 }, t);
   caption(t, "NTSC: Never The Same Colour", "phase error: every line the wrong hue");
   steps.step();
 
-  // 3. PAL: the studio flips V on every other line.
+  // 5. PAL. Odd lines are sent exactly as NTSC sends every line, so they are
+  //    still wrong. Say so, or the audience assumes PAL fixes every line.
+  t = steps.now();
+  steps.to(evenLines, { fill: notYet, duration: 0.5 }, t);
+  caption(t, "PAL: Phase Alternating Line", "odd lines: just like NTSC. Still wrong!", "odd-line");
+  steps.step();
+
+  // 6. Even lines: the studio sends V upside down (a mirror in the U axis).
   t = steps.now();
   steps
     .to(even.arrow, { opacity: 1, duration: 0.2 }, t)
     .to(even.mirror, { scaleY: -1, duration: 0.7 }, t);
-  caption(t, "PAL: Phase Alternating Line", "flip V on every other line");
+  caption(t, null, "even lines: sent with V flipped", "even-line");
   steps.step();
 
-  // 4. The same error hits the flipped line, rotating it the same way.
+  // 7. The same error hits the flipped line, rotating it the same way.
   t = steps.now();
-  steps.to(even.arrow, { rotation: rot(theta - err), duration: 0.8 }, t);
-  caption(t, null, "same error, same direction...");
+  steps
+    .draw(evenArc, { duration: 0.8 }, t)
+    .to(even.arrow, { rotation: rot(theta - err), duration: 0.8 }, t);
+  caption(t, null, "same error, same direction", "even-line");
   steps.step();
 
-  // 5. The set flips it back: now that line is wrong the OTHER way.
+  // 8. The set flips it back: now that line is wrong the OTHER way.
   t = steps.now();
   steps
     .to(even.mirror, { scaleY: 1, duration: 0.7 }, t)
     .to(evenLines, { fill: colourAt(theta - err), duration: 0.6 }, t + 0.3);
-  caption(t, null, "...flip it back: wrong the other way!");
+  caption(t, null, "flip it back: wrong the OTHER way!", "even-line");
   steps.step();
 
-  // 6. Average adjacent lines: right hue, slightly less saturated.
+  // 9. Average adjacent lines: right hue, slightly less saturated.
   t = steps.now();
   steps
-    .to([odd.arrow, even.arrow], { opacity: 0.35, duration: 0.4 }, t)
+    .to([odd.arrow, even.arrow, oddArc.el, evenArc.el], { opacity: 0.3, duration: 0.4 }, t)
     .to(avg.arrow, { opacity: 1, scale: Math.cos(err), duration: 0.6 }, t)
     .to(
       [...oddLines, ...evenLines],
       { fill: colourAt(theta, mag * Math.cos(err)), duration: 0.6 },
       t,
     );
-  caption(t, null, "average two lines: errors cancel");
+  caption(t, null, "average odd + even: the errors cancel");
   steps.step();
 }

@@ -1,4 +1,4 @@
-## How a telly works
+## How a CRT TV works
 
 <div class="scene wide" data-scene="crt" data-viewbox="0 0 1600 760"></div>
 
