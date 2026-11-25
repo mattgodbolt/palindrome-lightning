@@ -2,7 +2,7 @@
 
 ## Danke!
 
-<p>github.com/mattgodbolt/PALindrome</p>
-<p>bbc.xania.org</p>
+<p><a href="https://github.com/mattgodbolt/PALindrome">github.com/mattgodbolt/PALindrome</a></p>
+<p><a href="https://bbc.xania.org/">bbc.xania.org</a></p>
 
 Matt Godbolt

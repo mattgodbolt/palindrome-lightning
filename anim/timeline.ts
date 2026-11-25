@@ -50,7 +50,12 @@ export class Steps {
   private _step = 0;
 
   constructor() {
-    this.tl = gsap.timeline({ paused: true });
+    // lazy:false: GSAP normally defers a tween's first write to the end of the
+    // tick. When a seek jumps across several steps at once, a later tween on
+    // the same property would then read a stale start value (e.g. a fill that
+    // an earlier step changed), so the state at step N would depend on how you
+    // got there. Writing immediately keeps every step a pure function of N.
+    this.tl = gsap.timeline({ paused: true, defaults: { lazy: false } });
     this.tl.addLabel("step-0", 0);
   }
 

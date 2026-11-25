@@ -76,7 +76,25 @@ export default function ({ stage, steps }: SceneContext): void {
     el("rect", { x, y: SY, width: w, height: SH, fill: css(rgb) }, colour);
     const y = BARS[i].y;
     el("rect", { x, y: SY, width: w, height: SH, fill: css({ r: y, g: y, b: y }) }, mono);
+    // A faint band behind the scope trace under each bar, so the screen and
+    // the waveform visibly correspond. Same groups as the bars, so the bands
+    // go from grey to colour with the picture.
+    const band = {
+      x: X(ACTIVE_START + i * BAR_US),
+      y: Y(WHITE_LEVEL) - 70,
+      width: BAR_US * 20 + 0.5,
+      height: Y(SYNC_LEVEL) - Y(WHITE_LEVEL) + 70,
+      opacity: 0.22,
+    };
+    el("rect", { ...band, fill: css(rgb) }, colour);
+    el("rect", { ...band, fill: css({ r: y, g: y, b: y }) }, mono);
   });
+
+  // Guides from the screen's edges to the active part of the line.
+  const guides = el("g", { class: "wave-guide" }, back);
+  const active1 = X(ACTIVE_START + ACTIVE_US);
+  el("line", { x1: SX, y1: SY + SH + 8, x2: X(ACTIVE_START), y2: Y(WHITE_LEVEL) - 70 }, guides);
+  el("line", { x1: SX + SW, y1: SY + SH + 8, x2: active1, y2: Y(WHITE_LEVEL) - 70 }, guides);
 
   const axes = el("g", { class: "wave-axes" }, back);
   for (const lvl of [WHITE_LEVEL, BLACK_LEVEL, SYNC_LEVEL]) {

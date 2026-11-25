@@ -7,7 +7,39 @@ import type { SceneContext } from "../anim/reveal-scene.js";
 import { el } from "./lib.js";
 
 const GUN = { x: 230, y: 350 };
-const SCREEN_X = 1330;
+// The glass faceplate: a quadratic from (FACE_X, FACE_TOP) to (FACE_X,
+// FACE_BOTTOM) whose control point sits FACE_CTRL to the right, mid-height.
+// Because the control point is at mid-height, y is linear in t.
+const FACE_X = 1300;
+const FACE_TOP = 60;
+const FACE_BOTTOM = 640;
+const FACE_CTRL = 90;
+// The phosphor coats the inside of the faceplate: the same curve, nudged
+// inward and trimmed short of the corners.
+const PHOSPHOR_INSET = 11;
+const PHOSPHOR_TRIM = 0.025;
+
+/** A point on the inside of the faceplate at curve parameter t (0 = top). */
+function phosphorAtT(t: number): { x: number; y: number } {
+  return {
+    x: FACE_X + 2 * FACE_CTRL * t * (1 - t) - PHOSPHOR_INSET,
+    y: FACE_TOP + (FACE_BOTTOM - FACE_TOP) * t,
+  };
+}
+const phosphorAt = (y: number) => phosphorAtT((y - FACE_TOP) / (FACE_BOTTOM - FACE_TOP));
+
+/**
+ * A beam bent by the deflection coils: straight from the gun, a smooth curve
+ * through the coils, then straight to the target. The curve's control point
+ * sits on the line back from the target, so the bend joins the final straight
+ * with no kink.
+ */
+function bentBeam(target: { x: number; y: number }): string {
+  const ctrl = { x: 640, y: GUN.y };
+  const k = 0.12; // how far along the final straight the curve ends
+  const exit = { x: ctrl.x + k * (target.x - ctrl.x), y: ctrl.y + k * (target.y - ctrl.y) };
+  return `M${GUN.x},${GUN.y} L560,${GUN.y} Q${ctrl.x},${ctrl.y} ${exit.x},${exit.y} L${target.x},${target.y}`;
+}
 
 export default function ({ stage, steps }: SceneContext): void {
   const back = stage.clusterLayer;
@@ -16,14 +48,19 @@ export default function ({ stage, steps }: SceneContext): void {
     "path",
     {
       class: "crt-glass",
-      d: `M90,300 L520,300 L${SCREEN_X - 30},60 Q${SCREEN_X + 30},350 ${SCREEN_X - 30},640 L520,400 L90,400 Z`,
+      d: `M90,300 L520,300 L${FACE_X},${FACE_TOP} Q${FACE_X + FACE_CTRL},${(FACE_TOP + FACE_BOTTOM) / 2} ${FACE_X},${FACE_BOTTOM} L520,400 L90,400 Z`,
     },
     back,
   );
   el("rect", { class: "crt-gun", x: 110, y: 320, width: 120, height: 60, rx: 8 }, back);
   stage.label({ x: 170, y: 450, text: "electron gun", className: "crt-caption" });
-  el("rect", { class: "crt-screen", x: SCREEN_X - 12, y: 70, width: 14, height: 560 }, back);
-  stage.label({ x: SCREEN_X + 30, y: 680, text: "phosphor", className: "crt-caption" });
+  const phosphorPts: string[] = [];
+  for (let t = PHOSPHOR_TRIM; t <= 1 - PHOSPHOR_TRIM + 1e-9; t += 0.01) {
+    const p = phosphorAtT(t);
+    phosphorPts.push(`${p.x.toFixed(1)},${p.y.toFixed(1)}`);
+  }
+  el("path", { class: "crt-screen", d: `M${phosphorPts.join("L")}` }, back);
+  stage.label({ x: FACE_X + 30, y: 680, text: "phosphor", className: "crt-caption" });
 
   const coils = el("g", { class: "crt-coils" }, stage.nodeLayer);
   el("rect", { x: 540, y: 248, width: 110, height: 40, rx: 10 }, coils);
@@ -32,21 +69,24 @@ export default function ({ stage, steps }: SceneContext): void {
   coilLabel.el.setAttribute("opacity", "0");
 
   // Beams: straight, then bent up and down by the coils.
-  const straight = stage.path({ className: "beam", d: `M${GUN.x},${GUN.y} L${SCREEN_X},350` });
+  const mid = phosphorAt(350);
+  const top = phosphorAt(110);
+  const bottom = phosphorAt(590);
+  const straight = stage.path({ className: "beam", d: `M${GUN.x},${GUN.y} L${mid.x},${mid.y}` });
   const up = stage.path({
     className: "beam",
-    d: `M${GUN.x},${GUN.y} L560,350 Q640,350 700,300 L${SCREEN_X},110`,
+    d: bentBeam(top),
   });
   const down = stage.path({
     className: "beam",
-    d: `M${GUN.x},${GUN.y} L560,350 Q640,350 700,400 L${SCREEN_X},590`,
+    d: bentBeam(bottom),
   });
 
-  const glow = (y: number) =>
-    el("circle", { class: "phosphor-glow", cx: SCREEN_X - 5, cy: y, r: 26, opacity: 0 }, back);
-  const gMid = glow(350);
-  const gUp = glow(110);
-  const gDown = glow(590);
+  const glow = ({ x, y }: { x: number; y: number }) =>
+    el("circle", { class: "phosphor-glow", cx: x, cy: y, r: 26, opacity: 0 }, back);
+  const gMid = glow(mid);
+  const gUp = glow(top);
+  const gDown = glow(bottom);
 
   // 1. Fire.
   let t = steps.now();

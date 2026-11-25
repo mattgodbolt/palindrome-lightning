@@ -152,7 +152,7 @@ export default function ({ stage, steps }: SceneContext): void {
   const lines = stage.label({
     x: SX + SW + 60,
     y: SY + SH / 2,
-    text: "× 625",
+    text: "× 312½",
     anchor: "start",
     className: "count-label",
   });

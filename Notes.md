@@ -37,12 +37,39 @@ That's ~4m40s. It will be tight.
 - **PALindrome**: signal chain from `../PALindrome/README.md`. Wonder Boy III
   GIF is `../PALindrome/docs/images/wb3.gif` (10 fps, palette-dithered).
 
+## Berlin photo
+
+No freely licensed photo of Brandt at the button exists on Wikimedia Commons
+(checked 2026-11-25); press-agency photos exist but would need licensing. The
+slide is text only. Free 1967 alternatives if ever wanted: the Deutsche Bundespost
+Berlin 1967 Funkausstellung stamp (`File:DBPB 1967 309 Funkausstellung.jpg`,
+public domain) and a photo of the 1967 colour TV sign with the Funkturm
+(`File:Farbfernsehen 1967.jpg`, CC BY-SA 2.5, Hans Littmann).
+
+## jsbeeb demo options
+
+Researched by a subagent on 2026-11-25; it said it checked each in Chrome.
+Change `displayMode=rgb` to `pal` for the other frame. `autoboot` and `autotype`
+are mutually exclusive in jsbeeb; `embedBasic` tokenises a listing and RUNs it.
+
+1. MODE 2 colour bars with complementary-coloured " PAL TELLY " text strips,
+   via `embedBasic` (no disc, no CORS, ~3 s, strong fringing on the text):
+   `https://bbc.xania.org/?embed&displayMode=rgb&embedBasic=10MODE2%3AVDU23%2C1%2C0%3B0%3B0%3B0%3B%0A20FORI%3D0TO7%3AREADC%3AVDU24%2CI%2A160%3B0%3BI%2A160%2B159%3B1023%3B%3AGCOL0%2C128%2BC%3ACLG%3ANEXT%0A30VDU26%3AFORR%3D2TO30STEP4%3AC%3D%28R%20DIV4%29MOD8%3ACOLOUR128%2BC%3ACOLOUR7-C%3APRINTTAB%284%2CR%29%22%20PAL%20%20TELLY%20%22%3B%3ANEXT%0A40REPEATUNTILFALSE%0A50DATA7%2C3%2C6%2C2%2C5%2C1%2C4%2C0%0A`
+2. Nyan Cat (Bitshifters, Master): blue background, rainbow, animated, with
+   music; depends on bitshifters.github.io:
+   `https://bbc.xania.org/?embed&autoboot&model=Master&displayMode=rgb&disc=bitshifters:crtc-beebnyan.ssd`
+3. Wobble Colours (Bitshifters 256-byte demo, Master): very garish but fast
+   flashing, a photosensitivity concern on a projector:
+   `https://bbc.xania.org/?embed&autoboot&model=Master&displayMode=rgb&disc=bitshifters:bs-wobble-colours.ssd`
+
+Rejected: Repton (text on black), Bar Beeb (doesn't autoboot). Check the iframe
+at 760x600 for stray debugger panels before using any of these.
+
 ## TODO
 
-- Photo of Brandt at the button (check licence; Bundesarchiv on Wikimedia Commons is a likely source).
 - Photos of the bench: console, SDR, setup.
-- jsbeeb slide: pick a demo that shows PAL artefacts well (autoboot a disc, or
-  `autotype` a MODE 2 colour-bar program); have screenshots as a Wi-Fi fallback.
+- jsbeeb slide: autoboots the default disc (Elite). Something more garish would
+  show PAL artefacts better; options below. Have screenshots as a Wi-Fi fallback.
 - Maybe Firetrack's B&W trick (`../PALindrome/docs/Firetrack_BW_Trick.md`) as a
   15-second aside: it attacks the PAL ident to trip the colour killer. Probably
   no time.
