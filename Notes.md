@@ -68,8 +68,11 @@ at 760x600 for stray debugger panels before using any of these.
 ## TODO
 
 - Photos of the bench: console, SDR, setup.
-- jsbeeb slide: autoboots the default disc (Elite). Something more garish would
-  show PAL artefacts better; options below. Have screenshots as a Wi-Fi fallback.
+- jsbeeb slide: now runs the MODE 2 colour-bars listing (option 1 below). Have
+  screenshots as a Wi-Fi fallback.
+- The jsbeeb iframes pass `mute`, which hides the "suspended audio" banner once
+  https://github.com/mattgodbolt/jsbeeb/pull/1934 is merged and live; until then,
+  click each frame before the talk.
 - Maybe Firetrack's B&W trick (`../PALindrome/docs/Firetrack_BW_Trick.md`) as a
   15-second aside: it attacks the PAL ident to trip the colour killer. Probably
   no time.

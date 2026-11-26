@@ -572,6 +572,32 @@ tr.highlight-line {
     color: @trace;
   }
 }
+.average-chord {
+  fill: none;
+  stroke: @trace;
+  stroke-width: 3;
+  opacity: 0.8;
+}
+.average-dot {
+  fill: @trace;
+  filter: drop-shadow(0 0 8px @trace);
+}
+.scope-wave {
+  fill: none;
+  stroke-linejoin: round;
+  &.sent {
+    stroke: var(--hrt-ghost);
+  }
+  &.received {
+    stroke: var(--hrt-orange);
+  }
+  &.received.alt {
+    stroke: #66b8ff;
+  }
+  &.average {
+    stroke: @trace;
+  }
+}
 .swatch {
   stroke: var(--hrt-ghost);
   stroke-width: 3;

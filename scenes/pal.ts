@@ -38,6 +38,13 @@ const LINES_Y = 80;
 const LINE_H = 32;
 const N_LINES = 8;
 
+// The "scope" under the screen: each arrow's wiggle against a muted burst.
+const SCOPE_X = 860;
+const SCOPE_W = 640;
+const SCOPE_Y = 530;
+const SCOPE_AMP = 85; // px for the sent colour's saturation
+const SCOPE_CYCLES = 2;
+
 interface Phasor {
   /** Mirror group: scaleY -1 is the PAL V flip. */
   mirror: SVGGElement;
@@ -153,6 +160,63 @@ export default function ({ stage, steps }: SceneContext): void {
     parent: screen,
   });
 
+  // --- the scope: the wiggle each arrow puts on the wire --------------------
+  // Every frame, each wave is recomputed from its arrow exactly as drawn: the
+  // rotation, the PAL mirror and the length. So the wave morphs along with the
+  // arrow, and the flipped even line visibly sends a different wiggle.
+  const scope = el("g", { opacity: 0 }, back);
+  const k = (2 * Math.PI * SCOPE_CYCLES) / SCOPE_W;
+  el(
+    "path",
+    {
+      class: "wave reference",
+      d: plot(SCOPE_X, SCOPE_X + SCOPE_W, (x) => SCOPE_Y - SCOPE_AMP * Math.sin(k * (x - SCOPE_X))),
+    },
+    scope,
+  );
+  stage.label({
+    x: SCOPE_X - 16,
+    y: SCOPE_Y,
+    text: "burst",
+    anchor: "end",
+    className: "swatch-label",
+    parent: scope,
+  });
+  const traced = [
+    { p: sent, cls: "sent" },
+    { p: odd, cls: "received" },
+    { p: even, cls: "received alt" },
+    { p: avg, cls: "average" },
+  ].map(({ p, cls }) => ({
+    p,
+    path: el("path", { class: `scope-wave ${cls}` }, scope),
+    focus: { v: 0 },
+  }));
+  const [sentWave, oddWave, evenWave, avgWave] = traced;
+  const renderScope = () => {
+    for (const { p, path, focus } of traced) {
+      const phi = (-Number(gsap.getProperty(p.arrow, "rotation")) * Math.PI) / 180;
+      const flip = Number(gsap.getProperty(p.mirror, "scaleY"));
+      const size = Number(gsap.getProperty(p.arrow, "scaleX"));
+      const uu = SCOPE_AMP * size * Math.cos(phi);
+      const vv = SCOPE_AMP * size * flip * Math.sin(phi);
+      path.setAttribute(
+        "d",
+        plot(SCOPE_X, SCOPE_X + SCOPE_W, (x) => {
+          const a = k * (x - SCOPE_X);
+          return SCOPE_Y - (uu * Math.sin(a) + vv * Math.cos(a));
+        }),
+      );
+      const shown = Number(gsap.getProperty(p.arrow, "opacity")) > 0 ? 1 : 0;
+      path.setAttribute("opacity", `${shown * (0.2 + 0.8 * focus.v)}`);
+      path.style.strokeWidth = `${2 + 3 * focus.v}px`;
+    }
+  };
+  /** Highlight one wave on the scope, dimming the rest. */
+  const focusOn = (target: (typeof traced)[number], t: number) => {
+    for (const w of traced) steps.to(w.focus, { v: w === target ? 1 : 0, duration: 0.4 }, t);
+  };
+
   // --- captions: one title + one line per beat, cross-faded ------------------
   const make = (text: string, yy: number, cls: string) => {
     const l = stage.label({ x: 1180, y: yy, text, className: cls });
@@ -254,7 +318,9 @@ export default function ({ stage, steps }: SceneContext): void {
     .to([refWave.path, colWave.path, circle, refDot, colDot], { opacity: 0, duration: 0.4 }, t)
     .to([phaseArc, phaseLabel.el], { opacity: 0, duration: 0.4 }, t)
     .to(ring, { opacity: 1, duration: 0.6 }, t + 0.2)
-    .to(screen, { opacity: 1, duration: 0.6 }, t + 0.2);
+    .to(screen, { opacity: 1, duration: 0.6 }, t + 0.2)
+    .to(scope, { opacity: 1, duration: 0.6 }, t + 0.2);
+  focusOn(sentWave, t);
   caption(t, "Colour is an arrow", "angle = hue, length = saturation");
   steps.step();
 
@@ -286,6 +352,7 @@ export default function ({ stage, steps }: SceneContext): void {
     .draw(oddArc, { duration: 0.8 }, t)
     .to(odd.arrow, { rotation: rot(theta + err), duration: 0.8 }, t)
     .to([...oddLines, ...evenLines], { fill: colourAt(theta + err), duration: 0.8 }, t);
+  focusOn(oddWave, t);
   caption(t, "NTSC: Never The Same Colour", "phase error: every line the wrong hue");
   steps.step();
 
@@ -301,6 +368,7 @@ export default function ({ stage, steps }: SceneContext): void {
   steps
     .to(even.arrow, { opacity: 1, duration: 0.2 }, t)
     .to(even.mirror, { scaleY: -1, duration: 0.7 }, t);
+  focusOn(evenWave, t);
   caption(t, null, "even lines: sent with V flipped", "even-line");
   steps.step();
 
@@ -320,16 +388,66 @@ export default function ({ stage, steps }: SceneContext): void {
   caption(t, null, "flip it back: wrong the OTHER way!", "even-line");
   steps.step();
 
-  // 9. Average adjacent lines: right hue, slightly less saturated.
+  // 9. Average adjacent lines. Averaging two arrows lands halfway between
+  //    their tips: draw that chord, mark its midpoint, and grow the average
+  //    arrow out to it. Right angle, a little shorter: cos(error) as long.
+  const tip = (a: number) => ({ x: CX + len * Math.cos(a), y: CY - len * Math.sin(a) });
+  const [oddTip, evenTip] = [tip(theta + err), tip(theta - err)];
+  const chord = stage.path({
+    className: "average-chord",
+    d: `M${oddTip.x},${oddTip.y} L${evenTip.x},${evenTip.y}`,
+  });
+  const mid = el(
+    "circle",
+    {
+      class: "average-dot",
+      cx: (oddTip.x + evenTip.x) / 2,
+      cy: (oddTip.y + evenTip.y) / 2,
+      r: 12,
+      opacity: 0,
+    },
+    stage.tokenLayer,
+  );
   t = steps.now();
   steps
-    .to([odd.arrow, even.arrow, oddArc.el, evenArc.el], { opacity: 0.3, duration: 0.4 }, t)
-    .to(avg.arrow, { opacity: 1, scale: Math.cos(err), duration: 0.6 }, t)
+    .to([oddArc.el, evenArc.el], { opacity: 0.3, duration: 0.3 }, t)
+    .draw(chord, { duration: 0.6 }, t)
+    .to(mid, { opacity: 1, duration: 0.3 }, t + 0.5)
+    .fromTo(
+      avg.arrow,
+      { opacity: 1, scale: 0, immediateRender: false },
+      { scale: Math.cos(err), duration: 0.6 },
+      t + 0.8,
+    )
+    .to([odd.arrow, even.arrow], { opacity: 0.3, duration: 0.4 }, t + 1.2)
     .to(
       [...oddLines, ...evenLines],
       { fill: colourAt(theta, mag * Math.cos(err)), duration: 0.6 },
-      t,
+      t + 0.8,
     );
-  caption(t, null, "average odd + even: the errors cancel");
+  focusOn(avgWave, t + 0.8);
+  caption(t, null, "average = halfway: errors cancel!");
   steps.step();
+
+  // Redraw on GSAP's ticker rather than from the timeline: a seek renders
+  // tweens in start order, so anything hooked to it can read the arrows
+  // before they've moved. Only redraw when something the waves read changed.
+  let drawn = "";
+  gsap.ticker.add(() => {
+    const now = traced
+      .map(({ p, focus }) =>
+        [
+          gsap.getProperty(p.arrow, "rotation"),
+          gsap.getProperty(p.mirror, "scaleY"),
+          gsap.getProperty(p.arrow, "scaleX"),
+          gsap.getProperty(p.arrow, "opacity"),
+          focus.v,
+        ].join(),
+      )
+      .join(";");
+    if (now === drawn) return;
+    drawn = now;
+    renderScope();
+  });
+  renderScope();
 }
