@@ -8,7 +8,7 @@ Five-minute lightning talk, Meeting C++ 2026, Berlin. Comedy breakneck pace.
 2. How a CRT works: gun, magnets, phosphor (`scenes/crt.ts`) (30s)
 3. The signal: one line, H sync, the whole raster, V sync (`scenes/scan.ts`) (50s)
 4. Colour: luma, subcarrier, burst (`scenes/colour.ts`) (40s)
-5. PAL vs NTSC phasors (`scenes/pal.ts`) (40s)
+5. PAL vs NTSC phasors and scope (`scenes/pal.ts`, 9 key presses) (40s, likely more)
 6. Berlin, 25 August 1967 (20s)
 7. Why I care: jsbeeb RGB vs PAL (30s)
 8. It got out of hand: photos, PALindrome chain (`scenes/chain.ts`), Wonder Boy GIF (60s)
@@ -31,7 +31,13 @@ That's ~4m40s. It will be tight.
   https://www.cio.de/article/3688145/als-das-fernsehen-bunt-wurde.html ,
   hannover.de "Farbfernsehen PAL" page.
   Unverified: who started it early (often told as "a technician"). Don't say who.
-- **PAL inventor**: Walter Bruch, Telefunken, Hannover. (Not yet sourced here.)
+- **PAL inventor**: Walter Bruch, at Telefunken's receiver research lab in
+  Hannover, developed PAL after analysing NTSC and SECAM; patent filed end of
+  1962, shown publicly in 1963 (including to EBU experts in Hannover).
+  Sources: DPMA inventor gallery https://www.dpma.de/ponline/erfindergalerie/e_bio_bruch.html ,
+  hannover.de "Farbfernsehen PAL" page, https://en.wikipedia.org/wiki/PAL .
+  (The DPMA page calls Brandt "Chancellor" in 1967; he was foreign minister and
+  vice-chancellor then. Our slide is right.)
 - **jsbeeb**: `https://bbc.xania.org/?displayMode=pal` vs `displayMode=rgb`;
   implementation in `../jsbeeb/src/video-filters/pal-composite.js`.
 - **PALindrome**: signal chain from `../PALindrome/README.md`. Wonder Boy III
@@ -67,13 +73,6 @@ at 760x600 for stray debugger panels before using any of these.
 
 ## TODO
 
-- Photos of the bench: console, SDR, setup.
-- jsbeeb slide: now runs the MODE 2 colour-bars listing (option 1 below). Have
-  screenshots as a Wi-Fi fallback.
-- The jsbeeb iframes pass `mute`, which hides the "suspended audio" banner once
-  https://github.com/mattgodbolt/jsbeeb/pull/1934 is merged and live; until then,
-  click each frame before the talk.
-- Maybe Firetrack's B&W trick (`../PALindrome/docs/Firetrack_BW_Trick.md`) as a
-  15-second aside: it attacks the PAL ident to trip the colour killer. Probably
-  no time.
-- Rehearse against the clock and cut.
+- Nothing outstanding. Firetrack's B&W trick
+  (`../PALindrome/docs/Firetrack_BW_Trick.md`) gets a mention in passing, no
+  slide. Informal rehearsal says the timing is OK-ish.
