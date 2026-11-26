@@ -63,53 +63,61 @@ export default function ({ stage, steps }: SceneContext): void {
   stage.label({ x: FACE_X + 30, y: 680, text: "phosphor", className: "crt-caption" });
 
   const coils = el("g", { class: "crt-coils" }, stage.nodeLayer);
-  el("rect", { x: 540, y: 248, width: 110, height: 40, rx: 10 }, coils);
-  el("rect", { x: 540, y: 412, width: 110, height: 40, rx: 10 }, coils);
+  for (const y of [248, 412]) el("rect", { x: 540, y, width: 110, height: 40, rx: 10 }, coils);
+  // The coils make one field across the neck, perpendicular to the page, and
+  // that's what bends the beam: out of the page (dot) bends it up, into the
+  // page (cross) bends it down. Drawn in the gap, behind the beam, so it
+  // doesn't read as each magnet's own polarity. Size is the field's strength.
+  const field = el("g", { class: "field-glyph", opacity: 0 }, back);
+  const glyphs = [565, 625].flatMap((x) =>
+    [318, 382].map((y) => {
+      const g = el("g", {}, field);
+      el("circle", { cx: 0, cy: 0, r: 14 }, g);
+      const out = el("circle", { class: "field-out", cx: 0, cy: 0, r: 4 }, g);
+      const into = el("path", { d: "M-9,-9 L9,9 M9,-9 L-9,9" }, g);
+      return { g, out, into, x, y };
+    }),
+  );
   const coilLabel = stage.label({ x: 595, y: 200, text: "magnets", className: "crt-caption" });
   coilLabel.el.setAttribute("opacity", "0");
 
-  // Beams: straight, then bent up and down by the coils.
-  const mid = phosphorAt(350);
-  const top = phosphorAt(110);
-  const bottom = phosphorAt(590);
-  const straight = stage.path({ className: "beam", d: `M${GUN.x},${GUN.y} L${mid.x},${mid.y}` });
-  const up = stage.path({
-    className: "beam",
-    d: bentBeam(top),
-  });
-  const down = stage.path({
-    className: "beam",
-    d: bentBeam(bottom),
-  });
-
-  const glow = ({ x, y }: { x: number; y: number }) =>
-    el("circle", { class: "phosphor-glow", cx: x, cy: y, r: 26, opacity: 0 }, back);
-  const gMid = glow(mid);
-  const gUp = glow(top);
-  const gDown = glow(bottom);
+  // One beam whose bend follows the deflection s: +1 is the top of the screen,
+  // -1 the bottom. GSAP tweens s and render() redraws everything from it, so
+  // the morph stays seekable.
+  const REACH = 240;
+  const deflect = { s: 0 };
+  const target = (s: number) => phosphorAt(GUN.y - s * REACH);
+  const beam = stage.path({ className: "beam", d: bentBeam(target(0)) });
+  const spot = el("circle", { class: "phosphor-glow", r: 26, opacity: 0 }, back);
+  const render = () => {
+    const { s } = deflect;
+    const p = target(s);
+    beam.el.setAttribute("d", bentBeam(p));
+    spot.setAttribute("cx", `${p.x}`);
+    spot.setAttribute("cy", `${p.y}`);
+    coils.style.setProperty("--active", `${Math.abs(s)}`);
+    for (const f of glyphs) {
+      f.g.setAttribute("transform", `translate(${f.x},${f.y}) scale(${0.4 + 0.6 * Math.abs(s)})`);
+      f.out.setAttribute("opacity", s >= 0 ? "1" : "0");
+      f.into.setAttribute("opacity", s < 0 ? "1" : "0");
+    }
+  };
+  render();
 
   // 1. Fire.
   let t = steps.now();
-  steps.draw(straight, { duration: 0.5 }, t).to(gMid, { opacity: 1, duration: 0.3 }, t + 0.4);
+  steps.draw(beam, { duration: 0.5 }, t).to(spot, { opacity: 1, duration: 0.3 }, t + 0.4);
   steps.step();
 
-  // 2. Steer up.
+  // 2. Magnets: crank the field one way and the beam bends up, reverse it and
+  // the beam swings down. Do it fast enough, in a pattern, and you have a picture.
   t = steps.now();
+  const morph = (s: number, duration: number, at: number) =>
+    steps.to(deflect, { s, duration, ease: "sine.inOut", onUpdate: render }, at);
   steps
-    .to(straight.el, { opacity: 0, duration: 0.3 }, t)
-    .to(gMid, { opacity: 0, duration: 0.3 }, t)
-    .activate(coils, { duration: 0.3 }, t)
     .to(coilLabel.el, { opacity: 1, duration: 0.3 }, t)
-    .draw(up, { duration: 0.5 }, t + 0.2)
-    .to(gUp, { opacity: 1, duration: 0.3 }, t + 0.6);
-  steps.step();
-
-  // 3. And down. Do it fast enough, in a pattern, and you have a picture.
-  t = steps.now();
-  steps
-    .to(up.el, { opacity: 0, duration: 0.3 }, t)
-    .to(gUp, { opacity: 0, duration: 0.6 }, t)
-    .draw(down, { duration: 0.5 }, t + 0.2)
-    .to(gDown, { opacity: 1, duration: 0.3 }, t + 0.6);
+    .to(field, { opacity: 1, duration: 0.3 }, t);
+  morph(1, 0.9, t + 0.2);
+  morph(-1, 1.6, t + 1.5);
   steps.step();
 }
